@@ -1,8 +1,8 @@
+import ast
 import glob
-import re
-from pathlib import Path
 
 from core.env import Env
+from core.visitor import EnvVisitor
 
 
 def get_files_to_crawl(initial_directory: str) -> list[str]:
@@ -11,15 +11,23 @@ def get_files_to_crawl(initial_directory: str) -> list[str]:
     return files
 
 
-def crawl(path_to_file: str) -> list[Env]:
+def crawl(path_to_file: str, visitor: EnvVisitor) -> list[Env]:
     result = []
-    lines = open(path_to_file, 'r').readlines()
-    for idx, line in enumerate(lines):
-        r = re.search(r'os\.getenv\(.*\)', line)
-        if r:
-            result.append(Env(
-                filename=path_to_file,
-                line_no=idx,
-                string=line.strip()
-            ))
+    content = open(path_to_file, 'r').read()
+    node = ast.parse(content)
+    args = visitor.visit(node)
+    if args is not None:
+        ...
+        # env = Env(
+        #     filename=path_to_file
+        # )
+
+    # for idx, line in enumerate(lines):
+    #     r = re.search(r'os\.getenv\(.*\)', line)
+    #     if r:
+    #         result.append(Env(
+    #             filename=path_to_file,
+    #             line_no=idx,
+    #             string=line.strip()
+    #         ))
     return result
